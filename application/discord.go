@@ -6,57 +6,80 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 type DiscordMessage struct {
 	Content string `json:"content"`
 }
 
+// Enviar mensaje a Discord
 func SendDiscordMessage(message string) {
-	godotenv.Load()
 	webhookURL := os.Getenv("DISCORD_wH_URL")
 
 	if webhookURL == "" {
-		log.Println("No se encontró la URL del webhook de Discord en .env")
+		log.Println("⚠️ No se encontró la URL del webhook de Discord en .env")
 		return
 	}
 
 	payload := DiscordMessage{Content: message}
 	jsonValue, _ := json.Marshal(payload)
 
-	_, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(jsonValue))
+	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(jsonValue))
 	if err != nil {
 		log.Println("Error al enviar mensaje a Discord:", err)
+		return
 	}
+	defer resp.Body.Close()
+	log.Println("Mensaje enviado con estado:", resp.StatusCode)
 }
 
+// Manejar evento de Push
 func ProcessPush(payload []byte) int {
 	webhookURL := os.Getenv("DISCORD_wH_URL")
-
 	if webhookURL == "" {
 		log.Println("Error: Webhook de Discord no configurado en .env")
 		return 500
 	}
 
+	// Parsear JSON del payload
 	var data map[string]interface{}
 	if err := json.Unmarshal(payload, &data); err != nil {
 		log.Println("Error al parsear el payload de push:", err)
 		return 500
 	}
 
-	commits := data["commits"].([]interface{})
-	message := "Nuevo push detectado:\n"
-
-	for _, c := range commits {
-		commit := c.(map[string]interface{})
-		author := commit["author"].(map[string]interface{})["name"]
-		msg := commit["message"]
-
-		message += "- " + author.(string) + ": " + msg.(string) + "\n"
+	// Verificar si hay commits
+	commitsData, exists := data["commits"].([]interface{})
+	if !exists || len(commitsData) == 0 {
+		log.Println("Error: No se encontraron commits en el payload")
+		return 400
 	}
 
+	// Construir mensaje para Discord
+	message := "📌 **Nuevo Push Detectado:**\n"
+	for _, c := range commitsData {
+		commit, ok := c.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		// Obtener autor y mensaje del commit
+		authorName := "Desconocido"
+		if authorData, ok := commit["author"].(map[string]interface{}); ok {
+			if name, ok := authorData["name"].(string); ok {
+				authorName = name
+			}
+		}
+
+		commitMessage := "Sin mensaje"
+		if msg, ok := commit["message"].(string); ok {
+			commitMessage = msg
+		}
+
+		message += "- ✏️ `" + authorName + "`: " + commitMessage + "\n"
+	}
+
+	
 	return sendDiscordMessage(webhookURL, message)
 }
 
@@ -68,14 +91,8 @@ func sendDiscordMessage(url, message string) int {
 		log.Println("Error al enviar mensaje a Discord:", err)
 		return 500
 	}
-
 	defer resp.Body.Close()
+
 	log.Println("Mensaje enviado a Discord con estado:", resp.StatusCode)
 	return resp.StatusCode
 }
-
-//pureba de wenhook
-//pureba de wenhook 2
-//pureba de wenhook 3
-//pureba de wenhook 4
-//pureba de wenhook 5 para pull request
