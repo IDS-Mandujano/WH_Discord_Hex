@@ -33,7 +33,7 @@ func SendDiscordMessage(message string) {
 	log.Println("Mensaje enviado con estado:", resp.StatusCode)
 }
 
-// Manejar evento de Push
+// Manejar evento de Push (nombre cambiado)
 func ProcessPush(payload []byte) int {
 	webhookURL := os.Getenv("DISCORD_wH_URL")
 	if webhookURL == "" {
@@ -41,46 +41,52 @@ func ProcessPush(payload []byte) int {
 		return 500
 	}
 
-	// Parsear JSON del payload
 	var data map[string]interface{}
 	if err := json.Unmarshal(payload, &data); err != nil {
-		log.Println("Error al parsear el payload de push:", err)
+		log.Println("Error al parsear el payload de Push:", err)
 		return 500
 	}
 
-	// Verificar si hay commits
-	commitsData, exists := data["commits"].([]interface{})
-	if !exists || len(commitsData) == 0 {
-		log.Println("Error: No se encontraron commits en el payload")
+	action, ok := data["action"].(string)
+	if !ok {
+		log.Println("Error: No se encontró la acción en el payload")
 		return 400
 	}
 
-	// Construir mensaje para Discord
-	message := "📌 **Nuevo Push Detectado:**\n"
-	for _, c := range commitsData {
-		commit, ok := c.(map[string]interface{})
-		if !ok {
-			continue
+	// Imprimir la acción recibida para debug
+	log.Println("Acción recibida del Push:", action)
+
+	// Verificar si el PR está listo para revisión o fue mergeado
+	if action == "ready_for_review" || action == "closed" {
+		pr, exists := data["pull_request"].(map[string]interface{})
+		if !exists {
+			log.Println("Error: No se encontró la información del Pull Request en el payload")
+			return 400
 		}
 
-		// Obtener autor y mensaje del commit
-		authorName := "Desconocido"
-		if authorData, ok := commit["author"].(map[string]interface{}); ok {
-			if name, ok := authorData["name"].(string); ok {
-				authorName = name
-			}
-		}
+		user := pr["user"].(map[string]interface{})["login"].(string)
+		title := pr["title"].(string)
+		baseBranch := pr["base"].(map[string]interface{})["ref"].(string)
+		headBranch := pr["head"].(map[string]interface{})["ref"].(string)
+		prURL := pr["html_url"].(string)
 
-		commitMessage := "Sin mensaje"
-		if msg, ok := commit["message"].(string); ok {
-			commitMessage = msg
-		}
+		message := "Nuevo Pull Request:\n" +
+			"- Usuario: " + user + "\n" +
+			"- Título: " + title + "\n" +
+			"- De: " + headBranch + " -> " + baseBranch + "\n" +
+			"- URL: " + prURL
 
-		message += "- ✏️ `" + authorName + "`: " + commitMessage + "\n"
+		// Imprimir en consola
+		log.Println(message)
+
+		// Enviar a Discord
+		return sendDiscordMessage(webhookURL, message)
+	} else {
+		// Si la acción no es ni "ready_for_review" ni "closed", mostramos un mensaje
+		log.Println("Push Action no es relevante:", action)
 	}
 
-	
-	return sendDiscordMessage(webhookURL, message)
+	return 200
 }
 
 func sendDiscordMessage(url, message string) int {
