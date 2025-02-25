@@ -31,3 +31,5 @@ func SendDiscordMessage(message string) {
 		log.Println("❌ Error al enviar mensaje a Discord:", err)
 	}
 }
+
+//pureba de wenhook
