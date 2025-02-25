@@ -28,12 +28,12 @@ func SendDiscordMessage(message string) {
 
 	_, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(jsonValue))
 	if err != nil {
-		log.Println("❌ Error al enviar mensaje a Discord:", err)
+		log.Println("Error al enviar mensaje a Discord:", err)
 	}
 }
 
 func ProcessPush(payload []byte) int {
-	webhookURL := os.Getenv("DISCORD_wH_URL") // Asegúrate de que esta URL está bien definida en tu .env
+	webhookURL := os.Getenv("DISCORD_wH_URL")
 
 	if webhookURL == "" {
 		log.Println("Error: Webhook de Discord no configurado en .env")
@@ -46,7 +46,6 @@ func ProcessPush(payload []byte) int {
 		return 500
 	}
 
-	// Extraer información del push
 	commits := data["commits"].([]interface{})
 	message := "Nuevo push detectado:\n"
 
@@ -58,7 +57,6 @@ func ProcessPush(payload []byte) int {
 		message += "- " + author.(string) + ": " + msg.(string) + "\n"
 	}
 
-	// Enviar mensaje a Discord
 	return sendDiscordMessage(webhookURL, message)
 }
 
@@ -79,3 +77,4 @@ func sendDiscordMessage(url, message string) int {
 //pureba de wenhook
 //pureba de wenhook 2
 //pureba de wenhook 3
+//pureba de wenhook 4
