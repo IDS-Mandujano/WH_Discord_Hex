@@ -12,7 +12,6 @@ type DiscordMessage struct {
 	Content string `json:"content"`
 }
 
-// Enviar mensaje a Discord
 func SendDiscordMessage(message string) {
 	webhookURL := os.Getenv("DISCORD_wH_URL")
 
@@ -33,7 +32,6 @@ func SendDiscordMessage(message string) {
 	log.Println("Mensaje enviado con estado:", resp.StatusCode)
 }
 
-// Manejar evento de Push (nombre cambiado)
 func ProcessPush(payload []byte) int {
 	webhookURL := os.Getenv("DISCORD_wH_URL")
 	if webhookURL == "" {
@@ -53,10 +51,8 @@ func ProcessPush(payload []byte) int {
 		return 400
 	}
 
-	// Imprimir la acción recibida para debug
 	log.Println("Acción recibida del Push:", action)
 
-	// Verificar si el PR está listo para revisión o fue mergeado
 	if action == "ready_for_review" || action == "closed" {
 		pr, exists := data["pull_request"].(map[string]interface{})
 		if !exists {
@@ -76,13 +72,12 @@ func ProcessPush(payload []byte) int {
 			"- De: " + headBranch + " -> " + baseBranch + "\n" +
 			"- URL: " + prURL
 
-		// Imprimir en consola
+
 		log.Println(message)
 
-		// Enviar a Discord
 		return sendDiscordMessage(webhookURL, message)
 	} else {
-		// Si la acción no es ni "ready_for_review" ni "closed", mostramos un mensaje
+		
 		log.Println("Push Action no es relevante:", action)
 	}
 
