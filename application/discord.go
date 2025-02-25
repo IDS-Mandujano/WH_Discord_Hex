@@ -32,6 +32,50 @@ func SendDiscordMessage(message string) {
 	}
 }
 
+func ProcessPush(payload []byte) int {
+	webhookURL := os.Getenv("DISCORD_wH_URL") // Asegúrate de que esta URL está bien definida en tu .env
+
+	if webhookURL == "" {
+		log.Println("Error: Webhook de Discord no configurado en .env")
+		return 500
+	}
+
+	var data map[string]interface{}
+	if err := json.Unmarshal(payload, &data); err != nil {
+		log.Println("Error al parsear el payload de push:", err)
+		return 500
+	}
+
+	// Extraer información del push
+	commits := data["commits"].([]interface{})
+	message := "Nuevo push detectado:\n"
+
+	for _, c := range commits {
+		commit := c.(map[string]interface{})
+		author := commit["author"].(map[string]interface{})["name"]
+		msg := commit["message"]
+
+		message += "- " + author.(string) + ": " + msg.(string) + "\n"
+	}
+
+	// Enviar mensaje a Discord
+	return sendDiscordMessage(webhookURL, message)
+}
+
+func sendDiscordMessage(url, message string) int {
+	body, _ := json.Marshal(DiscordMessage{Content: message})
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(body))
+
+	if err != nil {
+		log.Println("Error al enviar mensaje a Discord:", err)
+		return 500
+	}
+
+	defer resp.Body.Close()
+	log.Println("Mensaje enviado a Discord con estado:", resp.StatusCode)
+	return resp.StatusCode
+}
+
 //pureba de wenhook
 //pureba de wenhook 2
 //pureba de wenhook 3
