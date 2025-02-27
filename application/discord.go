@@ -16,7 +16,7 @@ func SendDiscordMessage(message string) {
 	webhookURL := os.Getenv("DISCORD_wH_URL")
 
 	if webhookURL == "" {
-		log.Println("⚠️ No se encontró la URL del webhook de Discord en .env")
+		log.Println("No se encontró la URL del webhook de Discord en .env")
 		return
 	}
 
@@ -72,17 +72,16 @@ func ProcessPush(payload []byte) int {
 			"- De: " + headBranch + " -> " + baseBranch + "\n" +
 			"- URL: " + prURL
 
-
 		log.Println(message)
 
 		return sendDiscordMessage(webhookURL, message)
 	} else {
-		
-		log.Println("Push Action no es relevante:", action)
+		log.Printf("Pull Request Action no es Closed ni ready_for_review: %s", action)
 	}
 
 	return 200
 }
+
 
 func sendDiscordMessage(url, message string) int {
 	body, _ := json.Marshal(DiscordMessage{Content: message})
