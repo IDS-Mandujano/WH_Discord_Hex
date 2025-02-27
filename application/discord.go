@@ -96,3 +96,5 @@ func sendDiscordMessage(url, message string) int {
 	log.Println("Mensaje enviado a Discord con estado:", resp.StatusCode)
 	return resp.StatusCode
 }
+
+//asdasdasd
