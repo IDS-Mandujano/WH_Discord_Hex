@@ -27,7 +27,6 @@ func PullRequestEvent(ctx *gin.Context) {
 		statusCode = application.ProcessPullRequest(payload)
 	case "push":
 		statusCode = application.ProcessPush(payload)
-	default:
 		log.Printf("Evento no manejado: %s", eventType)
 		ctx.JSON(http.StatusNotImplemented, gin.H{"status": "Evento no manejado"})
 		return

@@ -14,6 +14,8 @@ type PullRequest struct {
 	Base  Branch `json:"base"`
 	URL   string `json:"url"`
 	User  User   `json:"user"`
+	Draft bool `json:"draft"`
+	HTMLURL string `json:"html_url"`
 }
 
 type Branch struct {
