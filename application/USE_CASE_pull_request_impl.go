@@ -27,6 +27,7 @@ func ProcessPullRequest(payload []byte) int {
 	if eventPayload.Action == "closed" || eventPayload.Action == "ready_for_review" || eventPayload.Action == "opened" {
 		base := eventPayload.PullRequest.Base.Ref
 		branch := eventPayload.PullRequest.Head.Ref
+		
 		user := eventPayload.PullRequest.User.Login
 		pRID := eventPayload.PullRequest.ID
 		url := eventPayload.PullRequest.HTMLURL
