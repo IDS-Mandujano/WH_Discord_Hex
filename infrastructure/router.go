@@ -7,13 +7,10 @@ import (
 )
 
 func Routes(engine *gin.Engine) {
-
-	routes := engine.Group("pull_request")
+	routes := engine.Group("/")
 
 	{
-		routes.POST("process", handlers.PullRequestEvent)
+		routes.POST("development", handlers.HandleDevelopmentEvent)
+		routes.POST("workflows", handlers.HandleWorkflowsEvent)
 	}
-
 }
-
-//sdsd

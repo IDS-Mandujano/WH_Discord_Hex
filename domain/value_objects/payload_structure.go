@@ -34,3 +34,14 @@ type User struct {
 	Type  string `json:"type"`
 	URL   string `json:"url"`
 }
+
+type WorkflowJob struct {
+	ID         int    `json:"id"`
+	WorkflowName string `json:"workflow_name"`
+	Status     string `json:"status"`
+	RunURL     string `json:"run_url"`
+}
+
+type WorkflowEventPayload struct {
+	WorkflowJob WorkflowJob `json:"workflow_job"`
+}

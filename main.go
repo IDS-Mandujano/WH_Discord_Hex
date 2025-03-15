@@ -9,21 +9,15 @@ import (
 )
 
 func main() {
-
 	godotenv.Load()
 
 	router := gin.Default()
-
 	infrastructure.Routes(router)
 
 	port := os.Getenv("PORT")
-
 	if port == "" {
-		port = "8080"
+		port = "4000"
 	}
 
 	router.Run(":" + port)
-
 }
-
-//Prueba main
